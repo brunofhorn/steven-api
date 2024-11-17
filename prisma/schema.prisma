@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,9 +8,86 @@ datasource db {
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  title       String   @db.VarChar(255)
-  description String   @db.VarChar(255)
+  id           Int                @id @default(autoincrement())
+  title        String             @db.VarChar(255)
+  description  String             @db.VarChar(255)
+  price        Float?
+  dates        EventDate[]
+  categories   EventCategory[]    @relation("EventCategories")
+  city         City               @relation(fields: [cityId], references: [id])
+  cityId       Int
+  location     String
+  contactInfo  String?
+  organizer    String
+  attractions  String[]
+  schedule     Json
+  images       EventImage[]
+  pastEditions EventPastEdition[]
+  sponsors     EventSponsor[]     @relation("EventSponsors")
+  stands       EventStand[]       @relation("EventStands")
+  attendees    EventAttendance[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+model EventDate {
+  id      Int      @id @default(autoincrement())
+  event   Event    @relation(fields: [eventId], references: [id])
+  eventId Int
+  date    DateTime
+}
+
+model EventCategory {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  events Event[] @relation("EventCategories")
+}
+
+model EventPastEdition {
+  id          Int     @id @default(autoincrement())
+  eventName   String // Nome da edição anterior (pode ser útil se o nome mudar entre edições)
+  year        Int // Ano da edição anterior
+  description String?
+  event       Event   @relation(fields: [eventId], references: [id])
+  eventId     Int
+}
+
+model EventImage {
+  id      Int    @id @default(autoincrement())
+  url     String
+  event   Event  @relation(fields: [eventId], references: [id])
+  eventId Int
+}
+
+model EventSponsor {
+  id      Int     @id @default(autoincrement())
+  name    String
+  logoUrl String?
+  contact String?
+  events  Event[] @relation("EventSponsors")
+}
+
+model EventStand {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  contact     String?
+  events      Event[] @relation("EventStands")
+}
+
+model EventAttendance {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  event       Event     @relation(fields: [eventId], references: [id])
+  eventId     Int
+  status      Boolean
+  confirmedAt DateTime? @default(now())
+}
+
+model City {
+  id      Int     @id @default(autoincrement())
+  name    String
+  state   String
+  country String
+  events  Event[]
 }
