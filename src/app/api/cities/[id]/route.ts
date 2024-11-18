@@ -3,13 +3,28 @@ import { NextResponse } from "next/server";
 
 export async function GET(_request: Request, { params: { id } }: { params: { id: string; }; }) {
     try {
-        const city = await prisma.city.findUnique({
-            where: { id: parseInt(id) },
-        });
+        const city = isNaN(Number(id))
+            ? await prisma.city.findFirst({
+                where: {
+                    name: {
+                        contains: String(id),
+                        mode: 'insensitive',
+                    },
+                },
+            })
+            : await prisma.city.findUnique({
+                where: {
+                    id: Number(id),
+                },
+            });
 
-        NextResponse.json(city, { status: 200 });
+        if (city) {
+            return NextResponse.json(city, { status: 200 });
+        } else {
+            return NextResponse.json({ error: "Cidade não encontrada." }, { status: 404 });
+        }
     } catch (error) {
-        NextResponse.json({ error: "Erro ao buscar cidade.", errorDescription: error }, { status: 500 });
+        return NextResponse.json({ error: "Erro ao buscar cidade.", errorDescription: error }, { status: 500 });
     }
 }
 

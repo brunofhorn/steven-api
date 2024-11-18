@@ -6,9 +6,9 @@ export async function GET() {
     try {
         const cities = await prisma.city.findMany();
 
-        NextResponse.json(cities, { status: 200 });
+        return NextResponse.json(cities, { status: 200 });
     } catch (error) {
-        NextResponse.json({ error: "Erro ao buscar cidades.", errorDescription: error }, { status: 500 });
+        return NextResponse.json({ error: "Erro ao buscar cidades.", errorDescription: error }, { status: 500 });
     }
 }
 
@@ -23,8 +23,8 @@ export async function POST(request: Request) {
             },
         });
 
-        NextResponse.json(city, { status: 201 });
+        return NextResponse.json(city, { status: 201 });
     } catch (error) {
-        NextResponse.json({ error: "Erro ao criar cidade.", errorDescription: error }, { status: 500 });
+        return NextResponse.json({ error: "Erro ao criar cidade.", errorDescription: error }, { status: 500 });
     }
 }
