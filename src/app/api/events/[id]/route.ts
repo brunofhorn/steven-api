@@ -51,3 +51,15 @@ export async function PUT(request: Request, { params: { id } }: { params: { id: 
         NextResponse.json({ error: "Erro ao atualizar o evento.", errorDescription: error }, { status: 500 });
     }
 }
+
+export async function DELETE(request: Request, { params: { id } }: { params: { id: string; }; }) {
+    try {
+        await prisma.event.delete({
+            where: { id: parseInt(id) },
+        });
+
+        NextResponse.json({ success: true }, { status: 204 });
+    } catch (error) {
+        NextResponse.json({ success: false, error: "Erro ao excluir o evento.", errorDescription: error }, { status: 500 });
+    }
+}
