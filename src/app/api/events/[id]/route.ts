@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET(_request: Request, { params: { id } }: { params: { id: string; }; }) {
@@ -22,12 +22,12 @@ export async function GET(_request: Request, { params: { id } }: { params: { id:
 
 export async function PUT(request: Request, { params: { id } }: { params: { id: string; }; }) {
     try {
-        const { name, description, cityId, dates, categories, price, location, contactInfo, organizer, attractions, schedule } = await request.json();
+        const { title, description, cityId, dates, categories, price, location, contactInfo, organizer, attractions, schedule } = await request.json();
 
         const event = await prisma.event.update({
             where: { id: parseInt(id) },
             data: {
-                name,
+                title,
                 description,
                 cityId,
                 dates: {
