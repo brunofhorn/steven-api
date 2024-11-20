@@ -1,157 +1,89 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import CategoryList from "@/components/categories/CategoryList";
+import CategoryForm from "@/components/categories/CategoryForm";
+import { useToast } from "@/hooks/use-toast";
 
-interface Category {
-    id: number;
+export type Category = {
+    id: string;
     name: string;
-}
+    image: string;
+    description: string;
+};
 
-interface CategoryInput {
-    name: string;
-}
+const CategoriesPage = () => {
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [categories, setCategories] = useState<Category[]>([
+        {
+            id: "1",
+            name: "Tecnologia",
+            image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
+            description: "Eventos relacionados à tecnologia e inovação",
+        },
+        {
+            id: "2",
+            name: "Literatura",
+            image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+            description: "Eventos literários e culturais",
+        },
+        {
+            id: "3",
+            name: "Cultura Pop",
+            image: "https://images.unsplash.com/photo-1518770660439-4636190af475",
+            description: "Eventos de cultura pop e entretenimento",
+        },
+    ]);
+    const { toast } = useToast();
 
-
-export default function Categories() {
-    const [category, setCategory] = useState<string | number>('');
-    const [categoryResult, setCategoryResult] = useState<Category | null>(null);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [categoryName, setCategoryName] = useState("");
-
-    const getCategories = async () => {
-        try {
-            const response = await fetch('/api/categories');
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar as categorias');
-            }
-
-            const data: Category[] = await response.json();
-
-            setCategories(data);
-        } catch (error) {
-            console.error('Erro ao carregar as categorias:', error);
-        } finally {
-        }
+    const handleDelete = (id: string) => {
+        setCategories(categories.filter((category) => category.id !== id));
+        toast({
+            title: "Categoria excluída",
+            description: "A categoria foi excluída com sucesso",
+        });
     };
 
-    const createCategory = async (categoryData: CategoryInput): Promise<void> => {
-        try {
-            const response = await fetch('/api/cities', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(categoryData),
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao cadastrar a categoria');
-            }
-
-            const data = await response.json();
-            console.log('Categoria cadastrada com sucesso:', data);
-        } catch (error) {
-            console.error('Erro ao cadastrar categoria:', error);
-        }
+    const handleSave = (category: Omit<Category, "id">) => {
+        const newCategory = {
+            ...category,
+            id: Math.random().toString(36).substr(2, 9),
+        };
+        setCategories([...categories, newCategory]);
+        setIsFormOpen(false);
+        toast({
+            title: "Categoria criada",
+            description: "A categoria foi criada com sucesso",
+        });
     };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        await createCategory({ name: categoryName });
-        getCategories();
-    };
-
-    const deleteCategory = async (categoryId: number): Promise<void> => {
-        try {
-            const response = await fetch(`/api/categories/${categoryId}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao deletar a categoria');
-            }
-
-            console.log('Categoria deletada com sucesso');
-        } catch (error) {
-            console.error('Erro ao deletar categoria:', error);
-        }
-    };
-
-    const handleDelete = async (categoryId: number) => {
-        await deleteCategory(categoryId);
-
-        setCategories((prevCategories) => prevCategories.filter((category) => category.id !== categoryId));
-    };
-
-    const fetchCategoryById = async (id: number): Promise<Category | null> => {
-        try {
-            const response = await fetch(`/api/categories/${id}`);
-
-            if (!response.ok) {
-                throw new Error('Erro ao buscar a categoria');
-            }
-
-            const data: Category = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Erro ao buscar categoria:', error);
-            return null;
-        }
-    };
-
-    const handleSearch = async () => {
-        const id = Number(category);
-        if (!isNaN(id)) {
-            const result = await fetchCategoryById(id);
-            setCategoryResult(result);
-        } else {
-            alert('Por favor, insira um ID válido.');
-        }
-    };
-
-    useEffect(() => {
-        getCategories();
-    }, []);
 
     return (
-        <>
-            <div className="flex flex-col h-screen justify-center items-center gap-4 divide-y-2">
-                <div>
-                    <h1>LISTAGEM ({categories.length} cidades)</h1>
-                    <ul>
-                        {categories.map((category) => (
-                            <li key={category.id}>
-                                {category.name} - <button onClick={() => handleDelete(category.id)}>REMOVER</button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="p-3">
-                    <h1>BUSCA</h1>
-                    <input
-                        type="text"
-                        placeholder="Digite o nome ou ID da cidade"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                    />
-                    <button onClick={handleSearch}>BUSCAR</button>
-                    {categoryResult && (
-                        <div className="flex flex-col gap-2">
-                            <p>{categoryResult.id}</p>
-                            <p>{categoryResult.name}</p>
-                        </div>
-                    )}
-                </div>
-                <div className="p-3">
-                    <h1>CADASTRAR</h1>
-                    <form onSubmit={handleSubmit}>
-                        <input type="text" name="categoryName" id="categoryName" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} className="border" />
-                        <button type="submit">CADASTRAR</button>
-                    </form>
+        <Layout>
+            <div className="mb-8">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold">Categorias</h1>
+                        <p className="text-gray-600 mt-2">
+                            Gerencie as categorias de eventos
+                        </p>
+                    </div>
+                    <Button onClick={() => setIsFormOpen(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nova Categoria
+                    </Button>
                 </div>
             </div>
-        </>
+
+            {isFormOpen ? (
+                <CategoryForm onSave={handleSave} onCancel={() => setIsFormOpen(false)} />
+            ) : (
+                <CategoryList categories={categories} onDelete={handleDelete} />
+            )}
+        </Layout>
     );
-}
+};
+
+export default CategoriesPage;
